@@ -1,0 +1,211 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Roles Enum
+enum Role {
+  SALES
+  PROJECTS_ADMIN
+  PROJECTS_SURVEY
+  PROJECTS_INSTALL
+  PROJECTS_COMMISSIONING
+  ADMIN
+  FINANCE
+  READ_ONLY
+}
+
+// User Model
+model User {
+  id                 Int      @id @default(autoincrement())
+  email              String   @unique
+  name               String?
+  password           String
+  role               Role     @default(READ_ONLY)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  projectsCreated    Project[] @relation("CreatedBySales")
+  projectsManaged    Project[] @relation("ManagedByProjectAdmin")
+  boqsPrepared       Boq[]     @relation("PreparedByProjectUser")
+  pnlsSubmitted      Pnl[]     @relation("SubmittedBySalesUser")
+  pnlsApproved       Pnl[]     @relation("ApprovedByAdminUser")
+  acceptancesLogged  AcceptanceForm[] @relation("LoggedByUser")
+  deletionRequested  DeletionRequest[] @relation("DeletionRequestedBy")
+  deletionResponded  DeletionRequest[] @relation("DeletionRespondedBy")
+
+  // Notifications
+  notifications      Notification[] @relation("NotificationRecipient")
+  notificationsCreated Notification[] @relation("NotificationCreator")
+}
+
+// Project Model
+model Project {
+  id                 Int      @id @default(autoincrement())
+  projectName        String   @unique
+  status             String   @default("Draft")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  targetDeliveryDate DateTime?
+  billingStatus      String?  @default("Not Ready") // Not Ready, Pending, Initiated, Billed
+
+  // Foreign Keys & Relations
+  salesPersonId    Int
+  salesPerson      User     @relation("CreatedBySales", fields: [salesPersonId], references: [id])
+  projectManagerId Int?
+  projectManager   User?    @relation("ManagedByProjectAdmin", fields: [projectManagerId], references: [id])
+  customerId       Int?
+  customerName     String
+  siteA_address    String?
+  siteB_address    String?
+
+  // Link to other forms/documents
+  crd            Crd?
+  boq            Boq?
+  pnl            Pnl?
+  acceptanceForm AcceptanceForm?
+  deletionRequest DeletionRequest?
+}
+
+// Customer Requirement Document (CRD) Model
+model Crd {
+  id              Int       @id @default(autoincrement())
+  project         Project   @relation(fields: [projectId], references: [id])
+  projectId       Int       @unique
+  dateCreated     DateTime  @default(now())
+  customerContact String?
+  customerPhone   String?
+  customerEmail   String?
+  projectType     String
+  billingTrigger  String
+  serviceType     String
+  bandwidth       String?
+  slaRequirements String?
+  interfaceType   String?
+  redundancy      Boolean   @default(false)
+  ipRequirements  String?
+  notes           String?   @db.Text
+
+  @@index([projectId])
+}
+
+// Bill of Quantities (BOQ) Model
+model Boq {
+  id           Int      @id @default(autoincrement())
+  project      Project  @relation(fields: [projectId], references: [id])
+  projectId    Int      @unique
+  datePrepared DateTime @default(now())
+  totalCost    Float
+  notes        String?  @db.Text
+
+  // Relation to user who prepared it
+  preparedById Int
+  preparedBy   User     @relation("PreparedByProjectUser", fields: [preparedById], references: [id])
+
+  @@index([projectId])
+  @@index([preparedById])
+}
+
+// Project P&L Model
+model Pnl {
+  id                 Int      @id @default(autoincrement())
+  project            Project  @relation(fields: [projectId], references: [id])
+  projectId          Int      @unique
+  datePrepared       DateTime @default(now())
+  boqCost            Float
+  oneTimeRevenue     Float?
+  recurringRevenue   Float?
+  contractTermMonths Int?
+  grossProfit        Float?
+  grossMargin        Float?
+  approvalStatus     String   @default("Pending") // Pending, Approved, Rejected, Under Review
+  approvalDate       DateTime?
+  adminComments      String?  @db.Text
+
+  // Relation to Sales user who submitted it
+  submittedById Int
+  submittedBy   User     @relation("SubmittedBySalesUser", fields: [submittedById], references: [id])
+
+  // Relation to Admin user who approved/rejected it
+  approverId    Int?
+  approver      User?    @relation("ApprovedByAdminUser", fields: [approverId], references: [id])
+
+  @@index([projectId])
+  @@index([submittedById])
+  @@index([approverId])
+}
+
+// Acceptance Form Model
+model AcceptanceForm {
+  id                Int      @id @default(autoincrement())
+  project           Project  @relation(fields: [projectId], references: [id])
+  projectId         Int      @unique // One Acceptance Form per Project
+  serviceId         String?  // Circuit ID assigned by ISP
+  commissionedDate  DateTime? // Date service was technically commissioned
+  acceptanceDate    DateTime // Date customer formally accepted
+  billingStartDate  DateTime // <<< Date billing should start (mandatory)
+  customerSignature String?  // Stores URL to the uploaded signed document
+  signedByName      String?  // Name of person who signed (optional text field)
+  signedByTitle     String?  // Title of person who signed (optional text field)
+  ispRepresentative String?  // Name of ISP rep present (optional text field)
+  notes             String?  @db.Text
+
+  // Relation to user who logged this form in the system
+  loggedById        Int
+  loggedBy          User     @relation("LoggedByUser", fields: [loggedById], references: [id]) // <<< Added relation to User
+
+  @@index([projectId])
+  @@index([loggedById]) // <<< Added index
+}
+
+// Project Deletion Request Model
+model DeletionRequest {
+  id                Int       @id @default(autoincrement())
+  project           Project   @relation(fields: [projectId], references: [id])
+  projectId         Int       @unique
+  requestDate       DateTime  @default(now())
+  status            String    @default("Pending") // Pending, Approved, Rejected
+  reason            String    @db.Text
+  responseDate      DateTime?
+  responseComments  String?   @db.Text
+
+  // Relation to users
+  requestedById     Int
+  requestedBy       User      @relation("DeletionRequestedBy", fields: [requestedById], references: [id])
+  respondedById     Int?
+  respondedBy       User?     @relation("DeletionRespondedBy", fields: [respondedById], references: [id])
+
+  @@index([projectId])
+  @@index([requestedById])
+  @@index([respondedById])
+}
+
+// Notification Model
+model Notification {
+  id                Int       @id @default(autoincrement())
+  title             String
+  message           String
+  type              String    // info, success, warning, error
+  isRead            Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  link              String?   // Optional link to navigate to
+  projectId         Int?      // Optional related project
+
+  // Relations
+  recipientId       Int
+  recipient         User      @relation("NotificationRecipient", fields: [recipientId], references: [id])
+  creatorId         Int
+  creator           User      @relation("NotificationCreator", fields: [creatorId], references: [id])
+
+  @@index([recipientId])
+  @@index([creatorId])
+  @@index([projectId])
+}

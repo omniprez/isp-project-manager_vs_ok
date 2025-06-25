@@ -1,0 +1,48 @@
+{
+  "compilerOptions": {
+    /* Basic Options */
+    "target": "ES2020",                       // Specify ECMAScript target version (ES2020 supports modern features widely available in recent Node.js versions)
+    "module": "CommonJS",                     // Specify module code generation: 'CommonJS' is standard for Node.js
+    "outDir": "./dist",                       // **Redirect output structure to the directory 'dist'.** This is where your compiled JavaScript will go.
+    "rootDir": "./src",                       // Specify the root directory of input files. Only files under ./src will be compiled.
+    "sourceMap": true,                        // Generate corresponding '.map' files for debugging (optional but helpful).
+
+    /* Strict Type-Checking Options */
+    "strict": true,                           // Enable all strict type-checking options (recommended for code quality).
+    // "noImplicitAny": true,                 // Raise error on expressions and declarations with an implied 'any' type. (Included in "strict": true)
+    // "strictNullChecks": true,              // Enable strict null checks. (Included in "strict": true)
+    // "strictFunctionTypes": true,           // Enable strict checking of function types. (Included in "strict": true)
+    // "strictBindCallApply": true,           // Enable strict 'bind', 'call', and 'apply' methods on functions. (Included in "strict": true)
+    // "strictPropertyInitialization": true,  // Ensure non-undefined class properties are initialized in the constructor. (Included in "strict": true)
+    // "noImplicitThis": true,                // Raise error on 'this' expressions with an implied 'any' type. (Included in "strict": true)
+    // "alwaysStrict": true,                  // Parse in strict mode and emit "use strict" for each source file. (Included in "strict": true)
+
+    /* Additional Checks */
+    // "noUnusedLocals": true,                // Report errors on unused local variables. (Helpful for clean code)
+    // "noUnusedParameters": true,            // Report errors on unused parameters. (Helpful for clean code)
+    // "noImplicitReturns": true,             // Report error when not all code paths in function return a value.
+    // "noFallthroughCasesInSwitch": true,    // Report errors for fallthrough cases in switch statement.
+
+    /* Module Resolution Options */
+    "moduleResolution": "node",               // Specify module resolution strategy: 'node' for Node.js.
+    "baseUrl": ".",                           // Base directory to resolve non-absolute module names (optional).
+    // "paths": {},                           // A series of entries which re-map imports to lookup locations relative to the 'baseUrl' (optional).
+    "resolveJsonModule": true,                // Include modules imported with '.json' extension.
+    "esModuleInterop": true,                  // Enables compatibility with CommonJS modules (allows default imports like `import express from 'express'`). Necessary for many Node.js libraries.
+
+    /* Advanced Options */
+    "skipLibCheck": true,                     // Skip type checking of all declaration files (*.d.ts). Speeds up compilation.
+    "forceConsistentCasingInFileNames": true, // Disallow inconsistently-cased references to the same file. Good practice.
+
+    /* Experimental Options */
+    // "experimentalDecorators": true,        // Enables experimental support for ES7 decorators.
+    // "emitDecoratorMetadata": true,         // Enables experimental support for emitting type metadata for decorators.
+  },
+  "include": [
+    "src/**/*"                                // Specifies that only files in the 'src' directory (and its subdirectories) should be compiled.
+  ],
+  "exclude": [
+    "node_modules",                           // Exclude the node_modules directory from compilation.
+    "dist"                                    // Exclude the output directory itself from compilation checks.
+  ]
+}

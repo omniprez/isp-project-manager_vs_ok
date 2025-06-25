@@ -1,0 +1,46 @@
+{
+  "name": "isp-project-manager-backend",
+  "version": "1.0.0",
+  "description": "Backend API for the ISP Project Management Application",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node dist/server.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "seed": "ts-node prisma/seed.ts",
+    "setup-email": "npm install @sendgrid/mail"
+  },
+  "keywords": [
+    "isp",
+    "project management",
+    "api",
+    "prisma",
+    "express",
+    "node"
+  ],
+  "author": "Your Name or Company",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^5.13.0",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@radix-ui/react-separator": "^1.1.4",
+    "@radix-ui/react-tabs": "^1.1.8",
+    "@sendgrid/mail": "^8.1.5",
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^20.12.11",
+    "cors": "^2.8.5",
+    "open": "^10.1.1",
+    "prisma": "^5.13.0",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.4.5"
+  }
+}
