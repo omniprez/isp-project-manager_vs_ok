@@ -138,8 +138,8 @@ const projectStatusSteps = [
     'Approved',
     'Installation Pending',
     'In Progress',
-    'Provisioning Complete',
     'Physical Installation Complete',
+    'Provisioning Complete',
     'Commissioning Complete',
     'UAT Pending',
     'Soak Period',
@@ -991,50 +991,77 @@ const ProjectDetailPage: React.FC = () => {
           />
           <CardContent sx={{ p: 2 }}>
             {project.pnl ? (
-              <List disablePadding>
-                <DetailItem
-                  label="Approval Status"
-                  value={
-                    <Chip
-                      label={project.pnl.approvalStatus}
-                      color={
-                        project.pnl.approvalStatus === 'Approved' ? 'success' :
-                        project.pnl.approvalStatus === 'Rejected' ? 'error' : 'warning'
-                      }
-                      size="small"
-                    />
-                  }
-                />
-                <DetailItem label="BOQ Cost Ref." value={`$${project.pnl.boqCost.toFixed(2)}`} />
-                <DetailItem label="One-Time Revenue" value={project.pnl.oneTimeRevenue ? `$${project.pnl.oneTimeRevenue.toFixed(2)}` : 'N/A'} />
-                <DetailItem label="Recurring Revenue (MRR)" value={project.pnl.recurringRevenue ? `$${project.pnl.recurringRevenue.toFixed(2)}` : 'N/A'} />
-                <DetailItem label="Term (Months)" value={project.pnl.contractTermMonths} />
-                <DetailItem
-                  label="Gross Profit (Est.)"
-                  value={
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.dark' }}>
-                      {project.pnl.grossProfit ? `$${project.pnl.grossProfit.toFixed(2)}` : 'N/A'}
-                    </Typography>
-                  }
-                />
-                <DetailItem
-                  label="Gross Margin (Est.)"
-                  value={
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.dark' }}>
-                      {project.pnl.grossMargin ? `${project.pnl.grossMargin.toFixed(1)}%` : 'N/A'}
-                    </Typography>
-                  }
-                />
+              <>
+                <List disablePadding>
+                  <DetailItem
+                    label="Approval Status"
+                    value={
+                      <Chip
+                        label={project.pnl.approvalStatus}
+                        color={
+                          project.pnl.approvalStatus === 'Approved' ? 'success' :
+                          project.pnl.approvalStatus === 'Rejected' ? 'error' : 'warning'
+                        }
+                        size="small"
+                      />
+                    }
+                  />
+                  <DetailItem label="BOQ Cost Ref." value={`$${project.pnl.boqCost.toFixed(2)}`} />
+                  <DetailItem label="One-Time Revenue" value={project.pnl.oneTimeRevenue ? `$${project.pnl.oneTimeRevenue.toFixed(2)}` : 'N/A'} />
+                  <DetailItem label="Recurring Revenue (MRR)" value={project.pnl.recurringRevenue ? `$${project.pnl.recurringRevenue.toFixed(2)}` : 'N/A'} />
+                  <DetailItem label="Term (Months)" value={project.pnl.contractTermMonths} />
+                  <DetailItem
+                    label="Gross Profit (Est.)"
+                    value={
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.dark' }}>
+                        {project.pnl.grossProfit ? `$${project.pnl.grossProfit.toFixed(2)}` : 'N/A'}
+                      </Typography>
+                    }
+                  />
+                  <DetailItem
+                    label="Gross Margin (Est.)"
+                    value={
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.dark' }}>
+                        {project.pnl.grossMargin ? `${project.pnl.grossMargin.toFixed(1)}%` : 'N/A'}
+                      </Typography>
+                    }
+                  />
 
-                <Box sx={{ my: 2, borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Approval Information</Typography>
-                </Box>
+                  <Box sx={{ my: 2, borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Approval Information</Typography>
+                  </Box>
 
-                <DetailItem label="Submitted By" value={project.pnl.submittedBy?.name} />
-                <DetailItem label="Approver" value={project.pnl.approver?.name} />
-                <DetailItem label="Approval Date" value={formatDate(project.pnl.approvalDate)} />
-                <DetailItem label="Admin Comments" value={project.pnl.adminComments} />
-              </List>
+                  <DetailItem label="Submitted By" value={project.pnl.submittedBy?.name} />
+                  <DetailItem label="Approver" value={project.pnl.approver?.name} />
+                  <DetailItem label="Approval Date" value={formatDate(project.pnl.approvalDate)} />
+                  <DetailItem label="Admin Comments" value={project.pnl.adminComments} />
+                </List>
+                {/* Approve/Reject Buttons for Admins in Pending Approval */}
+                {canApproveRejectPnl && (
+                  <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'center' }}>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      startIcon={<ThumbUpIcon />}
+                      onClick={handleApprovePnl}
+                      disabled={isSubmitting || loading}
+                      sx={{ flex: 1, maxWidth: 220 }}
+                    >
+                      Approve P&L
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<ThumbDownIcon />}
+                      onClick={handleOpenRejectDialog}
+                      disabled={isSubmitting || loading}
+                      sx={{ flex: 1, maxWidth: 220 }}
+                    >
+                      Reject P&L
+                    </Button>
+                  </Box>
+                )}
+              </>
             ) : (
               <Typography variant="body1" color="text.secondary" sx={{ p: 2 }}>
                 P&L has not yet been submitted for this project.

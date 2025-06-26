@@ -1,6 +1,7 @@
 // src/pages/DashboardPage.tsx (Imports from projectApi)
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
+import './dashboardCountdown.css';
 
 // Import API function and Auth Hook
 import { getProjects } from '../services/projectApi'; // <<< Import from projectApi
@@ -57,6 +58,7 @@ interface ProjectSummary {
   crd: { projectType: string; serviceType: string; } | null;
   boq: { id: number } | null;
   pnl: { id: number; approvalStatus: string } | null;
+  targetDeliveryDate: string | null;
 }
 
 
@@ -67,6 +69,7 @@ const DashboardPage: React.FC = () => {
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [openDeletionRequestsDialog, setOpenDeletionRequestsDialog] = useState(false);
   const { user } = useAuth();
+  const [countdowns, setCountdowns] = useState<{ [id: number]: { text: string; className: string } }>({});
 
   const handleOpenCreateDialog = () => { setOpenCreateDialog(true); };
   const handleOpenDeletionRequestsDialog = () => { setOpenDeletionRequestsDialog(true); };
@@ -115,6 +118,47 @@ const DashboardPage: React.FC = () => {
     fetchProjects();
   }, [fetchProjects]); // Depend on memoized fetchProjects
 
+  useEffect(() => {
+    if (!Array.isArray(projects) || projects.length === 0) return; // Do not update countdowns if no projects
+    const interval = setInterval(() => {
+      const now = new Date();
+      const newCountdowns: { [id: number]: { text: string; className: string } } = {};
+      projects.forEach((project) => {
+        if (!project.targetDeliveryDate) {
+          newCountdowns[project.id] = { text: 'N/A', className: 'countdown' };
+          return;
+        }
+        let target: Date;
+        if (project.targetDeliveryDate.includes('T')) {
+          target = new Date(project.targetDeliveryDate);
+        } else {
+          target = new Date(project.targetDeliveryDate + 'T23:59:59');
+        }
+        const diff = target.getTime() - now.getTime();
+        if (isNaN(target.getTime())) {
+          newCountdowns[project.id] = { text: 'N/A', className: 'countdown' };
+          return;
+        }
+        if (diff <= 0) {
+          newCountdowns[project.id] = { text: 'Overdue', className: 'countdown overdue' };
+          return;
+        }
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const mins = Math.floor((diff / (1000 * 60)) % 60);
+        const secs = Math.floor((diff / 1000) % 60);
+        let str = '';
+        if (days > 0) str += days + 'd ';
+        if (days > 0 || hours > 0) str += hours + 'h ';
+        str += mins + 'm ' + secs + 's';
+        let className = 'countdown';
+        if (diff < 3 * 24 * 60 * 60 * 1000) className += ' soon';
+        newCountdowns[project.id] = { text: str, className };
+      });
+      setCountdowns(newCountdowns);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [projects]);
 
   const handleCreateProjectClick = () => { handleOpenCreateDialog(); };
 
@@ -138,13 +182,26 @@ const DashboardPage: React.FC = () => {
     let color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = 'default';
     let icon = null;
 
-    if (['CRD Submitted', 'Feasibility', 'BOQ Ready', 'Pending Approval'].includes(status)) {
+    if ([
+      'CRD Submitted',
+      'Feasibility',
+      'BOQ Ready',
+      'Pending Approval',
+    ].includes(status)) {
       color = 'warning';
       icon = <PendingActionsIcon fontSize="small" />;
     } else if (status === 'Approved') {
       color = 'info';
       icon = <CheckCircleIcon fontSize="small" />;
-    } else if (['Installation Pending', 'In Progress', 'Provisioning Complete', 'Physical Installation Complete', 'Commissioning Complete', 'UAT Pending', 'Soak Period'].includes(status)) {
+    } else if ([
+      'Installation Pending',
+      'In Progress',
+      'Provisioning Complete',
+      'Physical Installation Complete',
+      'Commissioning Complete',
+      'UAT Pending',
+      'Soak Period',
+    ].includes(status)) {
       color = 'primary';
       icon = <ConstructionIcon fontSize="small" />;
     } else if (status === 'Completed') {
@@ -152,16 +209,17 @@ const DashboardPage: React.FC = () => {
       icon = <CheckCircleIcon fontSize="small" />;
     }
 
-    return (
-      <Chip
-        icon={icon}
-        label={status}
-        color={color}
-        size="small"
-        variant="outlined"
-        sx={{ fontWeight: 500 }}
-      />
-    );
+    // Only pass icon prop if icon is not null
+    const chipProps: any = {
+      label: status,
+      color,
+      size: 'small',
+      variant: 'outlined',
+      sx: { fontWeight: 500 },
+    };
+    if (icon) chipProps.icon = icon;
+
+    return <Chip {...chipProps} />;
   };
 
   // Get P&L status chip
@@ -422,13 +480,14 @@ const DashboardPage: React.FC = () => {
                       <TableCell sx={{ fontWeight: 'bold', py: 1.5 }}>Project Manager</TableCell>
                       <TableCell sx={{ fontWeight: 'bold', py: 1.5 }}>P&L Status</TableCell>
                       <TableCell sx={{ fontWeight: 'bold', py: 1.5 }}>Last Updated</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', py: 1.5 }}>Countdown</TableCell>
                       <TableCell sx={{ fontWeight: 'bold', py: 1.5 }}>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {!Array.isArray(projects) || projects.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                        <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                           <Typography variant="subtitle1" color="text.secondary">
                             No projects found.
                           </Typography>
@@ -469,6 +528,14 @@ const DashboardPage: React.FC = () => {
                           </TableCell>
                           <TableCell sx={{ py: 1.5 }}>{getPnlStatusChip(project)}</TableCell>
                           <TableCell sx={{ py: 1.5, fontSize: '0.875rem' }}>{new Date(project.updatedAt).toLocaleDateString()}</TableCell>
+                          <TableCell sx={{ py: 1.5 }}>
+                            <span
+                              className={countdowns[project.id]?.className || 'countdown'}
+                              style={{ display: 'inline-block', minWidth: 120 }}
+                            >
+                              {countdowns[project.id]?.text || 'N/A'}
+                            </span>
+                          </TableCell>
                           <TableCell sx={{ py: 1.5 }}>
                             <Tooltip title="View Details">
                               <IconButton

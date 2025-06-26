@@ -58,11 +58,11 @@ const defaultOtherSites = ['456 Branch Ave, City'];
 
 const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ open, onClose }) => {
   // --- State for form fields ---
-  const [projectName, setProjectName] = useState('Sample Fiber Link');
-  const [customerName, setCustomerName] = useState('Acme Corp');
-  const [mainSite, setMainSite] = useState(defaultSite);
-  const [otherSites, setOtherSites] = useState<string[]>([...defaultOtherSites]);
-  const [targetDeliveryDate, setTargetDeliveryDate] = useState('2024-07-01');
+  const [projectName, setProjectName] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [mainSite, setMainSite] = useState('');
+  const [otherSites, setOtherSites] = useState<string[]>([]);
+  const [targetDeliveryDate, setTargetDeliveryDate] = useState('');
   const [customerContact, setCustomerContact] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
@@ -111,11 +111,11 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ open, onClose }) 
   // Reset form on open
   useEffect(() => {
     if (open) {
-      setProjectName('Sample Fiber Link');
-      setCustomerName('Acme Corp');
-      setMainSite(defaultSite);
-      setOtherSites([...defaultOtherSites]);
-      setTargetDeliveryDate('2024-07-01');
+      setProjectName('');
+      setCustomerName('');
+      setMainSite('');
+      setOtherSites([]);
+      setTargetDeliveryDate('');
       setCustomerContact('');
       setCustomerPhone('');
       setCustomerEmail('');
@@ -248,15 +248,15 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ open, onClose }) 
             <Box sx={{ display: 'flex', gap: 2, mb: 2, width: '100%' }}>
               <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <label>Project Name *</label>
-                <input value={projectName} onChange={e => setProjectName(e.target.value)} required style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc', marginBottom: 0 }} />
+                <input value={projectName} onChange={e => setProjectName(e.target.value)} required placeholder="Sample Fiber Link" style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc', marginBottom: 0 }} />
               </Box>
               <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <label>Customer Name *</label>
-                <input value={customerName} onChange={e => setCustomerName(e.target.value)} required style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc', marginBottom: 0 }} />
+                <input value={customerName} onChange={e => setCustomerName(e.target.value)} required placeholder="Acme Corp" style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc', marginBottom: 0 }} />
               </Box>
               <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <label>Main Site</label>
-                <input value={mainSite} onChange={e => setMainSite(e.target.value)} required style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc', marginBottom: 0 }} />
+                <input value={mainSite} onChange={e => setMainSite(e.target.value)} required placeholder="123 Main St, City" style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc', marginBottom: 0 }} />
               </Box>
               <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <label>Other Sites</label>
@@ -266,7 +266,7 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ open, onClose }) 
                       <input
                         type="text"
                         value={site}
-                        placeholder="Enter site address"
+                        placeholder="456 Branch Ave, City"
                         onChange={e => handleOtherSiteChange(idx, e.target.value)}
                         style={{ flex: 1, padding: 8, borderRadius: 6, border: '1px solid #cfd8dc' }}
                       />
@@ -289,7 +289,7 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ open, onClose }) 
               </Box>
               <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <label>Target Delivery Date</label>
-                <input type="date" value={targetDeliveryDate} onChange={e => setTargetDeliveryDate(e.target.value)} style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc', marginBottom: 0 }} />
+                <input type="date" value={targetDeliveryDate} onChange={e => setTargetDeliveryDate(e.target.value)} placeholder="2024-07-01" style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc', marginBottom: 0 }} />
               </Box>
             </Box>
             <Typography sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>Customer Contact Information</Typography>

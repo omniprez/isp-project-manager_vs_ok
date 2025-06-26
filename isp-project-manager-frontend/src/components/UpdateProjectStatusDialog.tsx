@@ -38,10 +38,10 @@ const getValidNextStatuses = (currentStatus: string): string[] => {
     case 'Installation Pending':
       return ['In Progress'];
     case 'In Progress':
-      return ['Provisioning Complete', 'Physical Installation Complete'];
-    case 'Provisioning Complete':
-      return ['Physical Installation Complete', 'Commissioning Complete'];
+      return ['Physical Installation Complete'];
     case 'Physical Installation Complete':
+      return ['Provisioning Complete'];
+    case 'Provisioning Complete':
       return ['Commissioning Complete'];
     case 'Commissioning Complete':
       return ['UAT Pending'];
@@ -60,8 +60,8 @@ const getValidNextStatuses = (currentStatus: string): string[] => {
 const installationSteps = [
   'Installation Pending',
   'In Progress',
-  'Provisioning Complete',
   'Physical Installation Complete',
+  'Provisioning Complete',
   'Commissioning Complete',
   'UAT Pending',
   'Soak Period',

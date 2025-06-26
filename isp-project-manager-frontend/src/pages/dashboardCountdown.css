@@ -1,0 +1,21 @@
+.countdown {
+  font-weight: 600;
+  color: #1976d2;
+  font-size: 1.1rem;
+  background: #e3f2fd;
+  border-radius: 6px;
+  padding: 6px 16px;
+  display: inline-block;
+  min-width: 100px;
+  text-align: center;
+}
+.countdown.overdue {
+  color: #d32f2f;
+  background: #ffebee;
+  border: 1px solid #ffcdd2;
+}
+.countdown.soon {
+  color: #f9a825;
+  background: #fffde7;
+  border: 1px solid #ffe082;
+} 
