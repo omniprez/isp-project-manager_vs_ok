@@ -53,658 +53,343 @@ const steps = [
   'Review & Submit'
 ];
 
-const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ open, onClose }) => {
+const defaultSite = '123 Main St, City';
+const defaultOtherSites = ['456 Branch Ave, City'];
 
+const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ open, onClose }) => {
   // --- State for form fields ---
-  const [projectName, setProjectName] = useState('');
-  const [customerName, setCustomerName] = useState('');
-  const [siteA_address, setSiteA_address] = useState('');
-  const [siteB_address, setSiteB_address] = useState('');
-  const [targetDeliveryDate, setTargetDeliveryDate] = useState(''); // Using text input type='date'
+  const [projectName, setProjectName] = useState('Sample Fiber Link');
+  const [customerName, setCustomerName] = useState('Acme Corp');
+  const [mainSite, setMainSite] = useState(defaultSite);
+  const [otherSites, setOtherSites] = useState<string[]>([...defaultOtherSites]);
+  const [targetDeliveryDate, setTargetDeliveryDate] = useState('2024-07-01');
   const [customerContact, setCustomerContact] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
-  const [projectType, setProjectType] = useState('');
-  const [billingTrigger, setBillingTrigger] = useState('');
-  const [serviceType, setServiceType] = useState('');
-  const [bandwidth, setBandwidth] = useState('');
-  const [slaRequirements, setSlaRequirements] = useState('');
-  const [interfaceType, setInterfaceType] = useState('');
-  const [redundancy, setRedundancy] = useState(false);
-  const [ipRequirements, setIpRequirements] = useState('');
-  const [crdNotes, setCrdNotes] = useState(''); // Notes specific to CRD
-  // --------------------------
-
-  // --- State for stepper and form control ---
-  const [activeStep, setActiveStep] = useState(0);
+  const [crdNotes, setCrdNotes] = useState('Customer requests expedited delivery and 24/7 support.');
+  const [serviceDetails, setServiceDetails] = useState<any[]>([]);
+  const [techDetails, setTechDetails] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  // Validation errors
+  const [nameError, setNameError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [emailError, setEmailError] = useState('');
 
-   // Function to reset form state
-   const resetForm = () => {
-        setProjectName(''); setCustomerName(''); setSiteA_address('');
-        setSiteB_address(''); setTargetDeliveryDate(''); setCustomerContact('');
-        setCustomerPhone(''); setCustomerEmail(''); setProjectType('');
-        setBillingTrigger(''); setServiceType(''); setBandwidth('');
-        setSlaRequirements(''); setInterfaceType(''); setRedundancy(false);
-        setIpRequirements(''); setCrdNotes('');
-        setError(''); setLoading(false);
-        setActiveStep(0);
-   };
-
-   // Reset form fields when dialog opens (triggered by 'open' prop change)
-   useEffect(() => {
-     if (open) {
-       resetForm();
-     }
-   }, [open]);
-
-
-  const handleInternalClose = () => {
-      // Don't signal refresh on cancel
-      onClose(false);
-  };
-
-  const handleNext = () => {
-    // Validate current step before proceeding
-    if (activeStep === 0) {
-      if (!projectName || !customerName) {
-        setError('Please fill in all required fields in this step');
-        return;
+  // Sync service/tech details with sites
+  useEffect(() => {
+    const allSites = [mainSite, ...otherSites];
+    setServiceDetails((prev) => {
+      const arr = [...prev];
+      while (arr.length < allSites.length) {
+        arr.push({
+          projectType: 'New Installation',
+          billingTrigger: 'Upon Commissioning',
+          serviceType: 'Fiber Optic',
+          redundancy: true,
+        });
       }
-    } else if (activeStep === 2) {
-      if (!projectType || !billingTrigger || !serviceType) {
-        setError('Please select all required service details');
-        return;
+      return arr.slice(0, allSites.length);
+    });
+    setTechDetails((prev) => {
+      const arr = [...prev];
+      while (arr.length < allSites.length) {
+        arr.push({
+          bandwidth: '1 Gbps',
+          interfaceType: 'Fiber LC',
+          slaRequirements: '99.99% uptime',
+          ipRequirements: '/29 subnet',
+        });
       }
-    }
+      return arr.slice(0, allSites.length);
+    });
+    // eslint-disable-next-line
+  }, [mainSite, otherSites]);
 
-    setError('');
-    setActiveStep((prevStep) => prevStep + 1);
-  };
-
-  const handleBack = () => {
-    setError('');
-    setActiveStep((prevStep) => prevStep - 1);
-  };
-
-  const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
+  // Reset form on open
+  useEffect(() => {
+    if (open) {
+      setProjectName('Sample Fiber Link');
+      setCustomerName('Acme Corp');
+      setMainSite(defaultSite);
+      setOtherSites([...defaultOtherSites]);
+      setTargetDeliveryDate('2024-07-01');
+      setCustomerContact('');
+      setCustomerPhone('');
+      setCustomerEmail('');
+      setCrdNotes('Customer requests expedited delivery and 24/7 support.');
+      setServiceDetails([]);
+      setTechDetails([]);
+      setPage(1);
       setError('');
-      setLoading(true);
+      setSuccess('');
+      setNameError('');
+      setPhoneError('');
+      setEmailError('');
+    }
+  }, [open]);
 
-      // Final validation
-      if (!projectName || !customerName || !projectType || !billingTrigger || !serviceType) {
-         setError('Please fill in all required fields marked with *');
-         setLoading(false);
-         return;
-      }
-
-      // Construct data object for API
-      const formData = {
-          projectName, customerName, siteA_address, siteB_address,
-          targetDeliveryDate: targetDeliveryDate || null,
-          customerContact, customerPhone, customerEmail, projectType, billingTrigger,
-          serviceType, bandwidth, slaRequirements, interfaceType, redundancy,
-          ipRequirements, notes: crdNotes,
-      };
-
-      try {
-         console.log("Submitting to API:", formData);
-         await createProject(formData);
-         console.log("API call successful");
-         onClose(true);
-      } catch (err: any) {
-         console.error("Project creation failed:", err);
-         const message = err.response?.data?.error || err.message || 'Failed to create project. Please try again.';
-         setError(message);
-      } finally {
-         setLoading(false);
-      }
+  // --- Handlers ---
+  const handleAddSite = () => {
+    setOtherSites([...otherSites, '']);
+  };
+  const handleDeleteSite = (idx: number) => {
+    setOtherSites(otherSites.filter((_, i) => i !== idx));
+  };
+  const handleOtherSiteChange = (idx: number, value: string) => {
+    const arr = [...otherSites];
+    arr[idx] = value;
+    setOtherSites(arr);
+  };
+  const handleServiceDetailChange = (idx: number, field: string, value: any) => {
+    const arr = [...serviceDetails];
+    arr[idx][field] = value;
+    setServiceDetails(arr);
+  };
+  const handleTechDetailChange = (idx: number, field: string, value: any) => {
+    const arr = [...techDetails];
+    arr[idx][field] = value;
+    setTechDetails(arr);
   };
 
-  // Render step content based on active step
-  const getStepContent = (step: number) => {
-    switch (step) {
-      case 0: // Project Basics
-        return (
-          <Card variant="outlined" sx={{ mb: 2 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Basic Project Information
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-              <Box sx={{ p: 2 }}>
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                      Project Name *
-                    </Typography>
-                    <TextField
-                      required
-                      fullWidth
-                      value={projectName}
-                      onChange={(e) => setProjectName(e.target.value)}
-                      disabled={loading}
-                      autoFocus
-                      variant="outlined"
-                      placeholder="Enter a unique name for this project"
-                      InputProps={{
-                        sx: { height: '56px' }
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                      Customer Name *
-                    </Typography>
-                    <TextField
-                      required
-                      fullWidth
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      disabled={loading}
-                      variant="outlined"
-                      placeholder="Enter the customer or organization name"
-                      InputProps={{
-                        sx: { height: '56px' }
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                      Site A Address
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      value={siteA_address}
-                      onChange={(e) => setSiteA_address(e.target.value)}
-                      disabled={loading}
-                      variant="outlined"
-                      placeholder="Primary site location"
-                      InputProps={{
-                        sx: { height: '56px' }
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                      Site B Address
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      value={siteB_address}
-                      onChange={(e) => setSiteB_address(e.target.value)}
-                      disabled={loading}
-                      variant="outlined"
-                      placeholder="Secondary site location (if applicable)"
-                      InputProps={{
-                        sx: { height: '56px' }
-                      }}
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
-            </CardContent>
-          </Card>
-        );
+  // --- Validation ---
+  function validateContact() {
+    let valid = true;
+    setNameError(''); setPhoneError(''); setEmailError('');
+    if (!customerContact.match(/^[A-Za-z][A-Za-z\s\-\.']{1,}$/)) {
+      setNameError('Enter a valid name.');
+      valid = false;
+    }
+    if (!customerPhone.match(/^\+?[0-9\-\s]{7,20}$/)) {
+      setPhoneError('Enter a valid phone number.');
+      valid = false;
+    }
+    if (!customerEmail.match(/^\S+@\S+\.\S+$/)) {
+      setEmailError('Enter a valid email address.');
+      valid = false;
+    }
+    return valid;
+  }
 
-      case 1: // Customer Information
-        return (
-          <Card variant="outlined" sx={{ mb: 2 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Customer Contact Information
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Contact Name"
-                    value={customerContact}
-                    onChange={(e) => setCustomerContact(e.target.value)}
-                    disabled={loading}
-                    variant="outlined"
-                    helperText="Primary contact person"
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Contact Phone"
-                    type="tel"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    disabled={loading}
-                    variant="outlined"
-                    helperText="Phone number with country code"
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Contact Email"
-                    type="email"
-                    value={customerEmail}
-                    onChange={(e) => setCustomerEmail(e.target.value)}
-                    disabled={loading}
-                    variant="outlined"
-                    helperText="Email address for project communications"
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Target Delivery Date"
-                    type="date"
-                    value={targetDeliveryDate}
-                    onChange={(e) => setTargetDeliveryDate(e.target.value)}
-                    InputLabelProps={{ shrink: true }}
-                    disabled={loading}
-                    variant="outlined"
-                    helperText="Expected project completion date"
-                  />
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        );
-
-      case 2: // Service Details
-        return (
-          <Card variant="outlined" sx={{ mb: 2 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Project & Service Details
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-              <Box sx={{ p: 2 }}>
-                <Grid container spacing={3}>
-                  {/* Project Type */}
-                  <Grid item xs={12} md={4}>
-                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                      Project Type *
-                    </Typography>
-                    <FormControl
-                      required
-                      disabled={loading}
-                      variant="outlined"
-                      sx={{
-                        width: '100%',
-                        '& .MuiOutlinedInput-root': {
-                          height: '56px'
-                        }
-                      }}
-                    >
-                      <Select
-                        labelId="project-type-label"
-                        id="project-type-select"
-                        value={projectType}
-                        onChange={(e) => setProjectType(e.target.value)}
-                        displayEmpty
-                      >
-                        <MenuItem value="" disabled><em>Select Project Type</em></MenuItem>
-                        {projectTypes.map(type => <MenuItem key={type} value={type}>{type}</MenuItem>)}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-
-                  {/* Billing Trigger */}
-                  <Grid item xs={12} md={4}>
-                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                      Billing Trigger *
-                    </Typography>
-                    <FormControl
-                      required
-                      disabled={loading}
-                      variant="outlined"
-                      sx={{
-                        width: '100%',
-                        '& .MuiOutlinedInput-root': {
-                          height: '56px'
-                        }
-                      }}
-                    >
-                      <Select
-                        labelId="billing-trigger-label"
-                        id="billing-trigger-select"
-                        value={billingTrigger}
-                        onChange={(e) => setBillingTrigger(e.target.value)}
-                        displayEmpty
-                      >
-                        <MenuItem value="" disabled><em>Select Billing Trigger</em></MenuItem>
-                        {billingTriggers.map(trigger => <MenuItem key={trigger} value={trigger}>{trigger}</MenuItem>)}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-
-                  {/* Service Type */}
-                  <Grid item xs={12} md={4}>
-                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                      Service Type *
-                    </Typography>
-                    <FormControl
-                      required
-                      disabled={loading}
-                      variant="outlined"
-                      sx={{
-                        width: '100%',
-                        '& .MuiOutlinedInput-root': {
-                          height: '56px'
-                        }
-                      }}
-                    >
-                      <Select
-                        labelId="service-type-label"
-                        id="service-type-select"
-                        value={serviceType}
-                        onChange={(e) => setServiceType(e.target.value)}
-                        displayEmpty
-                      >
-                        <MenuItem value="" disabled><em>Select Service Type</em></MenuItem>
-                        {serviceTypes.map(service => <MenuItem key={service} value={service}>{service}</MenuItem>)}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                </Grid>
-
-                {/* Redundancy Checkbox - Below the dropdowns */}
-                <Box sx={{ mt: 3 }}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={redundancy}
-                        onChange={(e) => setRedundancy(e.target.checked)}
-                        disabled={loading}
-                        color="primary"
-                        sx={{ '& .MuiSvgIcon-root': { fontSize: 28 } }}
-                      />
-                    }
-                    label="Redundancy Required"
-                    sx={{ '& .MuiFormControlLabel-label': { fontWeight: 500 } }}
-                  />
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        );
-
-      case 3: // Technical Requirements
-        return (
-          <Card variant="outlined" sx={{ mb: 2 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Technical Specifications
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-              <Box sx={{ p: 2 }}>
-                {/* First row - Single line text fields */}
-                <Grid container spacing={3} sx={{ mb: 3 }}>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                      Required Bandwidth
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      value={bandwidth}
-                      onChange={(e) => setBandwidth(e.target.value)}
-                      disabled={loading}
-                      variant="outlined"
-                      placeholder="e.g., 1 Gbps, 10 Mbps"
-                      InputProps={{
-                        sx: { height: '56px' }
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                      Interface Type
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      value={interfaceType}
-                      onChange={(e) => setInterfaceType(e.target.value)}
-                      disabled={loading}
-                      variant="outlined"
-                      placeholder="e.g., Fiber LC, RJ45"
-                      InputProps={{
-                        sx: { height: '56px' }
-                      }}
-                    />
-                  </Grid>
-                </Grid>
-
-                {/* Second row - Multiline text fields */}
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                      SLA Requirements
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={4}
-                      value={slaRequirements}
-                      onChange={(e) => setSlaRequirements(e.target.value)}
-                      disabled={loading}
-                      variant="outlined"
-                      placeholder="Uptime guarantees, response times, etc."
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                      IP Requirements
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={4}
-                      value={ipRequirements}
-                      onChange={(e) => setIpRequirements(e.target.value)}
-                      disabled={loading}
-                      variant="outlined"
-                      placeholder="IP addressing needs, subnet requirements"
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
-            </CardContent>
-          </Card>
-        );
-
-      case 4: // Review & Submit
-        return (
-          <Card variant="outlined" sx={{ mb: 2 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Review Project Information
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-              <Box sx={{ p: 2 }}>
-                {/* Additional Notes */}
-                <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                  Additional Notes
-                </Typography>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={4}
-                  value={crdNotes}
-                  onChange={(e) => setCrdNotes(e.target.value)}
-                  disabled={loading}
-                  variant="outlined"
-                  placeholder="Any additional information or special requirements"
-                  sx={{ mb: 4 }}
-                />
-
-                {/* Project Summary */}
-                <Box sx={{ p: 3, bgcolor: 'background.default', borderRadius: 2 }}>
-                  <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: 'primary.main', mb: 2 }}>
-                    Project Summary
-                  </Typography>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} md={6}>
-                      <Box sx={{ '& > *': { mb: 1.5 } }}>
-                        <Typography variant="body2"><strong>Project Name:</strong> {projectName || 'Not specified'}</Typography>
-                        <Typography variant="body2"><strong>Customer:</strong> {customerName || 'Not specified'}</Typography>
-                        <Typography variant="body2"><strong>Project Type:</strong> {projectType || 'Not specified'}</Typography>
-                        <Typography variant="body2"><strong>Service Type:</strong> {serviceType || 'Not specified'}</Typography>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <Box sx={{ '& > *': { mb: 1.5 } }}>
-                        <Typography variant="body2"><strong>Contact:</strong> {customerContact || 'Not specified'}</Typography>
-                        <Typography variant="body2"><strong>Email:</strong> {customerEmail || 'Not specified'}</Typography>
-                        <Typography variant="body2"><strong>Target Date:</strong> {targetDeliveryDate || 'Not specified'}</Typography>
-                        <Typography variant="body2"><strong>Redundancy:</strong> {redundancy ? 'Yes' : 'No'}</Typography>
-                      </Box>
-                    </Grid>
-                  </Grid>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        );
-
-      default:
-        return 'Unknown step';
+  // --- Submit ---
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(''); setSuccess('');
+    if (!validateContact()) return;
+    if (!projectName || !customerName || !mainSite) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+    setLoading(true);
+    // Compose data for API
+    const allSites = [mainSite, ...otherSites];
+    // Extract required top-level fields from the first site (main site)
+    const firstService = serviceDetails[0] || {};
+    const firstTech = techDetails[0] || {};
+    const formData = {
+      projectName,
+      customerName,
+      siteA_address: mainSite,
+      siteB_address: otherSites[0] || '',
+      targetDeliveryDate,
+      customerContact,
+      customerPhone,
+      customerEmail,
+      projectType: firstService.projectType || '',
+      billingTrigger: firstService.billingTrigger || '',
+      serviceType: firstService.serviceType || '',
+      redundancy: !!firstService.redundancy,
+      bandwidth: firstTech.bandwidth || '',
+      slaRequirements: firstTech.slaRequirements || '',
+      interfaceType: firstTech.interfaceType || '',
+      ipRequirements: firstTech.ipRequirements || '',
+      notes: crdNotes,
+    };
+    try {
+      await createProject(formData);
+      setSuccess('Project created successfully!');
+      onClose(true);
+    } catch (err: any) {
+      setError(err?.response?.data?.error || err.message || 'Failed to create project.');
+    } finally {
+      setLoading(false);
     }
   };
+
+  // --- Render ---
+  const allSites = [mainSite, ...otherSites];
 
   return (
     <Dialog
       open={open}
-      onClose={handleInternalClose}
+      onClose={() => onClose(false)}
       PaperProps={{
         component: 'form',
         onSubmit: handleFormSubmit,
+        sx: { maxWidth: 1300, width: '100%' }
       }}
-      maxWidth="md"
+      maxWidth="lg"
       fullWidth
     >
       <DialogTitle sx={{ pb: 1, pt: 2, px: 3 }}>
-        <Typography variant="h5" component="div" sx={{ fontWeight: 600, fontSize: '1.5rem' }}>
-          Create New Project
+        <Typography variant="h5" component="div" sx={{ fontWeight: 600, fontSize: '1.5rem', color: '#1976d2' }}>
+          Customer Requirement Document (CRD) New Project
         </Typography>
       </DialogTitle>
 
-      <DialogContent sx={{ px: 3, py: 2 }}>
-        {/* Display error message if any */}
-        {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-
-        {/* Stepper */}
-        <Stepper
-          activeStep={activeStep}
-          sx={{
-            mb: 4,
-            mt: 2,
-            '& .MuiStepLabel-root': {
-              padding: '8px 0'
-            },
-            '& .MuiStepIcon-root': {
-              fontSize: 28,
-              '&.Mui-completed': {
-                color: '#1976d2'
-              },
-              '&.Mui-active': {
-                color: '#1976d2'
-              }
-            },
-            '& .MuiStepIcon-text': {
-              fill: '#fff',
-              fontWeight: 'bold'
-            },
-            '& .MuiStepLabel-label': {
-              fontSize: '0.9rem',
-              fontWeight: 500,
-              '&.Mui-active': {
-                fontWeight: 600
-              },
-              '&.Mui-completed': {
-                fontWeight: 600
-              }
-            }
-          }}
-        >
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-
-        {/* Step content */}
-        {getStepContent(activeStep)}
-
-        {/* Navigation buttons */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-          <Button
-            disabled={activeStep === 0 || loading}
-            onClick={handleBack}
-            startIcon={<ArrowBackIcon />}
-            variant="outlined"
-            size="large"
-            sx={{
-              borderRadius: '4px',
-              textTransform: 'none',
-              px: 3,
-              py: 1.5,
-              fontSize: '1rem',
-              borderColor: '#1976d2',
-              color: '#1976d2',
-              '&:hover': {
-                borderColor: '#1565c0',
-                backgroundColor: 'rgba(25, 118, 210, 0.04)'
-              }
-            }}
-          >
-            Back
-          </Button>
-
-          {activeStep === steps.length - 1 ? (
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              size="large"
-              disabled={loading}
-              sx={{
-                borderRadius: '4px',
-                textTransform: 'none',
-                px: 3,
-                py: 1.5,
-                fontSize: '1rem',
-                minWidth: 120,
-                backgroundColor: '#1976d2',
-                '&:hover': {
-                  backgroundColor: '#1565c0'
-                }
-              }}
-            >
-              {loading ? <CircularProgress size={24} /> : 'Create Project'}
+      <DialogContent sx={{ px: 3, py: 2, overflowX: 'hidden', minWidth: 1100 }}>
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+        {page === 1 && (
+          <>
+            <Typography sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>Basic Project Information</Typography>
+            <Box sx={{ display: 'flex', gap: 2, mb: 2, width: '100%' }}>
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <label>Project Name *</label>
+                <input value={projectName} onChange={e => setProjectName(e.target.value)} required style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc', marginBottom: 0 }} />
+              </Box>
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <label>Customer Name *</label>
+                <input value={customerName} onChange={e => setCustomerName(e.target.value)} required style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc', marginBottom: 0 }} />
+              </Box>
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <label>Main Site</label>
+                <input value={mainSite} onChange={e => setMainSite(e.target.value)} required style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc', marginBottom: 0 }} />
+              </Box>
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <label>Other Sites</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 180, overflowY: 'auto', marginBottom: 4 }}>
+                  {otherSites.map((site, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                      <input
+                        type="text"
+                        value={site}
+                        placeholder="Enter site address"
+                        onChange={e => handleOtherSiteChange(idx, e.target.value)}
+                        style={{ flex: 1, padding: 8, borderRadius: 6, border: '1px solid #cfd8dc' }}
+                      />
+                      <button
+                        type="button"
+                        title="Delete site"
+                        onClick={() => handleDeleteSite(idx)}
+                        style={{ background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', borderRadius: 4, padding: '0 4px', display: 'flex', alignItems: 'center', transition: 'background 0.15s' }}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.5 7.5V14.5M10 7.5V14.5M13.5 7.5V14.5M3 5.5H17M8.5 3.5H11.5C12.0523 3.5 12.5 3.94772 12.5 4.5V5.5H7.5V4.5C7.5 3.94772 7.94772 3.5 8.5 3.5Z" stroke="#d32f2f" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
+                  <Button variant="outlined" color="primary" onClick={handleAddSite} sx={{ fontWeight: 600, borderRadius: 2, px: 2, py: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: '1.2em', marginRight: 6 }}>+</span> Add Site
+                  </Button>
+                </div>
+              </Box>
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <label>Target Delivery Date</label>
+                <input type="date" value={targetDeliveryDate} onChange={e => setTargetDeliveryDate(e.target.value)} style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc', marginBottom: 0 }} />
+              </Box>
+            </Box>
+            <Typography sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>Customer Contact Information</Typography>
+            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <label>Contact Name *</label>
+                <input value={customerContact} onChange={e => setCustomerContact(e.target.value)} required style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc' }} />
+                {nameError && <span style={{ color: '#d32f2f', fontSize: '0.98rem' }}>{nameError}</span>}
+              </Box>
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <label>Contact Phone *</label>
+                <input value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} required style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc' }} />
+                {phoneError && <span style={{ color: '#d32f2f', fontSize: '0.98rem' }}>{phoneError}</span>}
+              </Box>
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <label>Contact Email *</label>
+                <input value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} required style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc' }} />
+                {emailError && <span style={{ color: '#d32f2f', fontSize: '0.98rem' }}>{emailError}</span>}
+              </Box>
+            </Box>
+          </>
+        )}
+        {page === 2 && (
+          <>
+            <Typography sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>Project & Service Details</Typography>
+            {allSites.map((site, idx) => (
+              <Box key={idx} sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <label>Site</label>
+                  <input value={site} readOnly style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc', background: '#f9fbfc' }} />
+                </Box>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <label>Project Type *</label>
+                  <select value={serviceDetails[idx]?.projectType || ''} onChange={e => handleServiceDetailChange(idx, 'projectType', e.target.value)} style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc' }}>
+                    {projectTypes.map(type => <option key={type} value={type}>{type}</option>)}
+                  </select>
+                </Box>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <label>Billing Trigger *</label>
+                  <select value={serviceDetails[idx]?.billingTrigger || ''} onChange={e => handleServiceDetailChange(idx, 'billingTrigger', e.target.value)} style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc' }}>
+                    {billingTriggers.map(trigger => <option key={trigger} value={trigger}>{trigger}</option>)}
+                  </select>
+                </Box>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <label>Service Type *</label>
+                  <select value={serviceDetails[idx]?.serviceType || ''} onChange={e => handleServiceDetailChange(idx, 'serviceType', e.target.value)} style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc' }}>
+                    {serviceTypes.map(type => <option key={type} value={type}>{type}</option>)}
+                  </select>
+                </Box>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1, mt: 3 }}>
+                  <input type="checkbox" checked={!!serviceDetails[idx]?.redundancy} onChange={e => handleServiceDetailChange(idx, 'redundancy', e.target.checked)} />
+                  <label style={{ marginBottom: 0, fontWeight: 500 }}>Redundancy Required</label>
+                </Box>
+              </Box>
+            ))}
+            <Typography sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>Technical Requirements</Typography>
+            {allSites.map((site, idx) => (
+              <Box key={idx} sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <label>Site</label>
+                  <input value={site} readOnly style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc', background: '#f9fbfc' }} />
+                </Box>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <label>Required Bandwidth</label>
+                  <input value={techDetails[idx]?.bandwidth || ''} onChange={e => handleTechDetailChange(idx, 'bandwidth', e.target.value)} style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc' }} />
+                </Box>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <label>Interface Type</label>
+                  <input value={techDetails[idx]?.interfaceType || ''} onChange={e => handleTechDetailChange(idx, 'interfaceType', e.target.value)} style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc' }} />
+                </Box>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <label>SLA Requirements</label>
+                  <input value={techDetails[idx]?.slaRequirements || ''} onChange={e => handleTechDetailChange(idx, 'slaRequirements', e.target.value)} style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc' }} />
+                </Box>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <label>IP Requirements</label>
+                  <input value={techDetails[idx]?.ipRequirements || ''} onChange={e => handleTechDetailChange(idx, 'ipRequirements', e.target.value)} style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc' }} />
+                </Box>
+              </Box>
+            ))}
+            <Box sx={{ display: 'flex', flexDirection: 'column', mb: 2 }}>
+              <label>Additional Notes</label>
+              <textarea value={crdNotes} onChange={e => setCrdNotes(e.target.value)} style={{ padding: 8, borderRadius: 6, border: '1px solid #cfd8dc', minHeight: 36, maxHeight: 80, resize: 'vertical' }} />
+            </Box>
+          </>
+        )}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+          {page === 2 && (
+            <Button variant="outlined" color="primary" onClick={() => setPage(1)} disabled={loading} sx={{ borderRadius: 2, px: 3, py: 1.5, fontSize: '1rem' }}>
+              Previous
             </Button>
-          ) : (
-            <Button
-              onClick={handleNext}
-              endIcon={<ArrowForwardIcon />}
-              variant="contained"
-              color="primary"
-              size="large"
-              disabled={loading}
-              sx={{
-                borderRadius: '4px',
-                textTransform: 'none',
-                px: 3,
-                py: 1.5,
-                fontSize: '1rem',
-                backgroundColor: '#1976d2',
-                '&:hover': {
-                  backgroundColor: '#1565c0'
-                }
-              }}
-            >
+          )}
+          {page === 1 && (
+            <Button variant="contained" color="primary" onClick={() => { if (validateContact()) setPage(2); }} disabled={loading} sx={{ borderRadius: 2, px: 3, py: 1.5, fontSize: '1rem' }}>
               Next
+            </Button>
+          )}
+          {page === 2 && (
+            <Button type="submit" variant="contained" color="primary" disabled={loading} sx={{ borderRadius: 2, px: 3, py: 1.5, fontSize: '1rem', minWidth: 120 }}>
+              {loading ? <CircularProgress size={24} /> : 'Create Project'}
             </Button>
           )}
         </Box>

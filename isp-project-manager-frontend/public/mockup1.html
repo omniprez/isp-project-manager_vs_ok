@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRD New Project - Mockup 1</title>
+  <link href="https://fonts.googleapis.com/css?family=Inter:400,600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: #f7fafd;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 12px auto 0 auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+      padding: 18px 40px 32px 40px;
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      color: #1976d2;
+      margin-bottom: 8px;
+      margin-top: 0;
+    }
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 18px 0 12px 0;
+      color: #1976d2;
+    }
+    .form-row {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+    .form-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    label {
+      font-size: 0.98rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    input, select, textarea {
+      font-size: 1rem;
+      padding: 8px 12px;
+      border: 1px solid #cfd8dc;
+      border-radius: 6px;
+      background: #f9fbfc;
+      transition: border 0.2s;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border: 1.5px solid #1976d2;
+      background: #fff;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 36px;
+      max-height: 80px;
+    }
+    .multiline-sites {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+      margin-bottom: 4px;
+    }
+    .site-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+    .delete-site-btn {
+      background: none;
+      border: none;
+      color: #d32f2f;
+      cursor: pointer;
+      padding: 0 4px;
+      margin-left: 2px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .delete-site-btn:hover {
+      color: #b71c1c;
+      background: #fbe9e7;
+    }
+    .nav-btns {
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      margin-top: 32px;
+    }
+    button {
+      background: #1976d2;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 28px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:disabled {
+      background: #b0bec5;
+      cursor: not-allowed;
+    }
+    .step-indicator {
+      text-align: right;
+      color: #1976d2;
+      font-size: 1rem;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    .error {
+      color: #d32f2f;
+      font-size: 0.98rem;
+      margin-top: 2px;
+      margin-bottom: 0;
+    }
+    @media (max-width: 900px) {
+      .container { padding: 10px 4px; }
+      .form-row { flex-direction: column; gap: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Customer Requirement Document (CRD) New Project</h1>
+    <div class="step-indicator" id="step-indicator">Step 1 of 2</div>
+    <form id="crdForm" autocomplete="off">
+      <div id="page1">
+        <div class="section-title">Basic Project Information</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="projectName">Project Name *</label>
+            <input type="text" id="projectName" name="projectName" value="Sample Fiber Link" required>
+          </div>
+          <div class="form-group">
+            <label for="customerName">Customer Name *</label>
+            <input type="text" id="customerName" name="customerName" value="Acme Corp" required>
+          </div>
+          <div class="form-group">
+            <label for="mainSite">Main Site</label>
+            <input type="text" id="mainSite" name="mainSite" value="123 Main St, City" required>
+          </div>
+          <div class="form-group">
+            <label for="otherSites">Other Sites</label>
+            <div class="multiline-sites" id="otherSitesList"></div>
+            <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
+               <button type="button" id="addSiteBtn" style="background:#e3f2fd; color:#1976d2; padding:6px 16px; font-size:1rem; font-weight:600; border-radius:6px; border:1px solid #bbdefb; display:flex; align-items:center; gap:6px;" onclick="addOtherSite()">
+                 <span style="font-size:1.2em;">&#43;</span> Add Site
+               </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="targetDeliveryDate">Target Delivery Date</label>
+            <input type="date" id="targetDeliveryDate" name="targetDeliveryDate" value="2024-07-01">
+          </div>
+        </div>
+        <div class="section-title">Customer Contact Information</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="customerContact">Contact Name *</label>
+            <input type="text" id="customerContact" name="customerContact" required>
+            <div class="error" id="nameError"></div>
+          </div>
+          <div class="form-group">
+            <label for="customerPhone">Contact Phone *</label>
+            <input type="tel" id="customerPhone" name="customerPhone" required>
+            <div class="error" id="phoneError"></div>
+          </div>
+          <div class="form-group">
+            <label for="customerEmail">Contact Email *</label>
+            <input type="email" id="customerEmail" name="customerEmail" required>
+            <div class="error" id="emailError"></div>
+          </div>
+        </div>
+      </div>
+      <div id="page2" style="display:none;">
+        <div class="section-title">Project & Service Details</div>
+        <div id="serviceSites"></div>
+        <div class="section-title">Technical Requirements</div>
+        <div id="techSites"></div>
+        <div class="form-row">
+          <div class="form-group" style="flex:2;">
+            <label for="crdNotes">Additional Notes</label>
+            <textarea id="crdNotes" name="crdNotes">Customer requests expedited delivery and 24/7 support.</textarea>
+          </div>
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button type="button" id="prevBtn" onclick="goPrev()" disabled>Previous</button>
+        <button type="button" id="nextBtn" onclick="goNext()">Next</button>
+        <button type="submit" id="submitBtn" style="display:none;">Submit</button>
+      </div>
+    </form>
+  </div>
+  <script>
+    // --- Sites State ---
+    let mainSite = '123 Main St, City';
+    let otherSites = ['456 Branch Ave, City'];
+    const otherSitesList = document.getElementById('otherSitesList');
+    const mainSiteInput = document.getElementById('mainSite');
+    function renderOtherSites() {
+      otherSitesList.innerHTML = '';
+      otherSites.forEach((site, idx) => {
+        const row = document.createElement('div');
+        row.className = 'site-row';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'other-site-input';
+        input.value = site;
+        input.placeholder = 'Enter site address';
+        input.oninput = (e) => {
+          otherSites[idx] = e.target.value;
+          renderServiceSites();
+          renderTechSites();
+        };
+        row.appendChild(input);
+        const delBtn = document.createElement('button');
+        delBtn.className = 'delete-site-btn';
+        delBtn.type = 'button';
+        delBtn.title = 'Delete site';
+        delBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.5 7.5V14.5M10 7.5V14.5M13.5 7.5V14.5M3 5.5H17M8.5 3.5H11.5C12.0523 3.5 12.5 3.94772 12.5 4.5V5.5H7.5V4.5C7.5 3.94772 7.94772 3.5 8.5 3.5Z" stroke="#d32f2f" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        delBtn.onclick = () => {
+          otherSites.splice(idx, 1);
+          renderOtherSites();
+          renderServiceSites();
+          renderTechSites();
+        };
+        row.appendChild(delBtn);
+        otherSitesList.appendChild(row);
+      });
+    }
+    function addOtherSite() {
+      otherSites.push('');
+      renderOtherSites();
+      renderServiceSites();
+      renderTechSites();
+    }
+    mainSiteInput.addEventListener('input', function(e) {
+      mainSite = e.target.value;
+      renderServiceSites();
+      renderTechSites();
+    });
+    renderOtherSites();
+
+    // --- Service & Tech Sites ---
+    function renderServiceSites() {
+      const container = document.getElementById('serviceSites');
+      const allSites = [mainSite, ...otherSites];
+      container.innerHTML = '';
+      allSites.forEach((site, idx) => {
+        const row = document.createElement('div');
+        row.className = 'form-row';
+        row.innerHTML = `
+          <div class="form-group">
+            <label>Site</label>
+            <input type="text" value="${site}" readonly>
+          </div>
+          <div class="form-group">
+            <label>Project Type *</label>
+            <select required>
+              <option value="POC">POC</option>
+              <option value="New Installation" selected>New Installation</option>
+              <option value="Upgrade">Upgrade</option>
+              <option value="Migration">Migration</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Billing Trigger *</label>
+            <select required>
+              <option value="Upon Commissioning" selected>Upon Commissioning</option>
+              <option value="Fixed Start Date">Fixed Start Date</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Service Type *</label>
+            <select required>
+              <option value="Licensed Microwave">Licensed Microwave</option>
+              <option value="Unlicensed Microwave">Unlicensed Microwave</option>
+              <option value="Fiber Optic" selected>Fiber Optic</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group" style="align-items:center; flex-direction:row; gap:8px; margin-top:28px;">
+            <input type="checkbox" checked>
+            <label style="margin-bottom:0; font-weight:500;">Redundancy Required</label>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+    function renderTechSites() {
+      const container = document.getElementById('techSites');
+      const allSites = [mainSite, ...otherSites];
+      container.innerHTML = '';
+      allSites.forEach((site, idx) => {
+        const row = document.createElement('div');
+        row.className = 'form-row';
+        row.innerHTML = `
+          <div class="form-group">
+            <label>Site</label>
+            <input type="text" value="${site}" readonly>
+          </div>
+          <div class="form-group">
+            <label>Required Bandwidth</label>
+            <input type="text" value="1 Gbps">
+          </div>
+          <div class="form-group">
+            <label>Interface Type</label>
+            <input type="text" value="Fiber LC">
+          </div>
+          <div class="form-group">
+            <label>SLA Requirements</label>
+            <input type="text" value="99.99% uptime">
+          </div>
+          <div class="form-group">
+            <label>IP Requirements</label>
+            <input type="text" value="/29 subnet">
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+    renderServiceSites();
+    renderTechSites();
+
+    // --- Navigation & Validation ---
+    let page = 1;
+    function goNext() {
+      if (!validateContact()) return;
+      document.getElementById('page1').style.display = 'none';
+      document.getElementById('page2').style.display = '';
+      document.getElementById('prevBtn').disabled = false;
+      document.getElementById('nextBtn').style.display = 'none';
+      document.getElementById('submitBtn').style.display = '';
+      document.getElementById('step-indicator').innerText = 'Step 2 of 2';
+      page = 2;
+    }
+    function goPrev() {
+      document.getElementById('page1').style.display = '';
+      document.getElementById('page2').style.display = 'none';
+      document.getElementById('prevBtn').disabled = true;
+      document.getElementById('nextBtn').style.display = '';
+      document.getElementById('submitBtn').style.display = 'none';
+      document.getElementById('step-indicator').innerText = 'Step 1 of 2';
+      page = 1;
+    }
+    function validateContact() {
+      let valid = true;
+      const name = document.getElementById('customerContact').value.trim();
+      const phone = document.getElementById('customerPhone').value.trim();
+      const email = document.getElementById('customerEmail').value.trim();
+      document.getElementById('nameError').innerText = '';
+      document.getElementById('phoneError').innerText = '';
+      document.getElementById('emailError').innerText = '';
+      if (!name.match(/^[A-Za-z][A-Za-z\s\-\.']{1,}$/)) {
+        document.getElementById('nameError').innerText = 'Enter a valid name.';
+        valid = false;
+      }
+      if (!phone.match(/^\+?[0-9\-\s]{7,20}$/)) {
+        document.getElementById('phoneError').innerText = 'Enter a valid phone number.';
+        valid = false;
+      }
+      if (!email.match(/^\S+@\S+\.\S+$/)) {
+        document.getElementById('emailError').innerText = 'Enter a valid email address.';
+        valid = false;
+      }
+      return valid;
+    }
+    document.getElementById('crdForm').onsubmit = function(e) {
+      e.preventDefault();
+      if (page === 1 && !validateContact()) return;
+      alert('Form submitted! (Sample)');
+    };
+  </script>
+</body>
+</html> 
