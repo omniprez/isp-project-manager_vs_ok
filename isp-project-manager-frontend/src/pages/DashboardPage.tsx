@@ -124,6 +124,26 @@ const DashboardPage: React.FC = () => {
       const now = new Date();
       const newCountdowns: { [id: number]: { text: string; className: string } } = {};
       projects.forEach((project) => {
+        if (project.status === 'Completed') {
+          // Calculate duration from createdAt to updatedAt
+          const created = new Date(project.createdAt);
+          const updated = new Date(project.updatedAt);
+          let diff = updated.getTime() - created.getTime();
+          if (isNaN(created.getTime()) || isNaN(updated.getTime()) || diff < 0) {
+            newCountdowns[project.id] = { text: 'Completed', className: 'countdown completed' };
+            return;
+          }
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+          const mins = Math.floor((diff / (1000 * 60)) % 60);
+          const secs = Math.floor((diff / 1000) % 60);
+          let str = 'Completed in ';
+          if (days > 0) str += days + 'd ';
+          if (days > 0 || hours > 0) str += hours + 'h ';
+          str += mins + 'm ' + secs + 's';
+          newCountdowns[project.id] = { text: str, className: 'countdown completed' };
+          return;
+        }
         if (!project.targetDeliveryDate) {
           newCountdowns[project.id] = { text: 'N/A', className: 'countdown' };
           return;
@@ -462,7 +482,7 @@ const DashboardPage: React.FC = () => {
             </Grid>
 
             {/* Projects Table */}
-            <Card sx={{ boxShadow: 2, borderRadius: 1.5, overflow: 'hidden' }}>
+            <Card sx={{ boxShadow: 2, borderRadius: 1.5, overflow: 'hidden', maxWidth: 1400, mx: 'auto' }}>
               <Box sx={{ p: 1.5, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider' }}>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                   Project List
@@ -531,7 +551,7 @@ const DashboardPage: React.FC = () => {
                           <TableCell sx={{ py: 1.5 }}>
                             <span
                               className={countdowns[project.id]?.className || 'countdown'}
-                              style={{ display: 'inline-block', minWidth: 120 }}
+                              style={{ display: 'inline-block', minWidth: 80 }}
                             >
                               {countdowns[project.id]?.text || 'N/A'}
                             </span>

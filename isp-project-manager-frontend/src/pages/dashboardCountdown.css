@@ -1,12 +1,12 @@
 .countdown {
-  font-weight: 600;
+  font-weight: 500;
   color: #1976d2;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   background: #e3f2fd;
-  border-radius: 6px;
-  padding: 6px 16px;
+  border-radius: 4px;
+  padding: 2px 8px;
   display: inline-block;
-  min-width: 100px;
+  min-width: 60px;
   text-align: center;
 }
 .countdown.overdue {
@@ -18,4 +18,13 @@
   color: #f9a825;
   background: #fffde7;
   border: 1px solid #ffe082;
+}
+.countdown.completed {
+  color: #388e3c;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  font-size: 1rem;
+  padding: 3px 10px;
+  min-width: 80px;
+  border-radius: 4px;
 } 

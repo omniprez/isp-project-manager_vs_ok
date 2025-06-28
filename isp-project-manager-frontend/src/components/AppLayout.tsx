@@ -95,7 +95,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             }}
             onClick={() => navigate('/dashboard')}
           >
-            ISP Project Manager
+            MCS Project Management
           </Typography>
 
           {/* Notification Center */}
@@ -177,7 +177,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       >
         <Container maxWidth="lg">
           <Typography variant="body2" color="text.secondary" align="center">
-            ISP Project Manager © {new Date().getFullYear()}
+            MCS Project Management © {new Date().getFullYear()}
           </Typography>
         </Container>
       </Box>

@@ -128,7 +128,7 @@ export const sendNotificationEmail = async (
           ${link ? `<a href="${link}" class="button">View Details</a>` : ''}
         </div>
         <div class="footer">
-          <p>This is an automated message from ISP Project Manager. Please do not reply to this email.</p>
+          <p>This is an automated message from MCS Project Management. Please do not reply to this email.</p>
         </div>
       </div>
     </body>

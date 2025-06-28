@@ -90,7 +90,7 @@ const LoginPage: React.FC = () => {
             Welcome Back
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            Sign in to access your ISP Project Manager account
+            Sign in to access your MCS Project Management account
           </Typography>
 
           {/* Display error message FROM CONTEXT if any */}

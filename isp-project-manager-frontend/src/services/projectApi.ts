@@ -415,13 +415,13 @@ export interface BillingCompleteResponse {
 /**
  * Initiate billing for a completed project
  * @param projectId - The ID of the project
- * @param billingNotes - Optional notes for the billing team
+ * @param billingData - Optional billing data
  * @returns Promise with the billing initiation response
  */
-export const initiateBilling = async (projectId: number, billingNotes?: string): Promise<BillingInitiateResponse> => {
+export const initiateBilling = async (projectId: number, billingData: any): Promise<BillingInitiateResponse> => {
     console.log(`projectApi.ts: initiateBilling function started for Project ID: ${projectId}`);
     try {
-        const response = await apiClient.put<BillingInitiateResponse>(`/billing/${projectId}/initiate`, { billingNotes });
+        const response = await apiClient.put<BillingInitiateResponse>(`/billing/${projectId}/initiate`, billingData);
         return response.data;
     } catch (error) {
         console.error(`projectApi.ts: apiClient.put('/billing/${projectId}/initiate') FAILED.`, error);
